@@ -1,0 +1,20 @@
+/* --------------PRIMER SQL EJECUTADO EN PRODUCCION-------------- */
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+
+CREATE TABLE posts(
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    content TEXT,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_post FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)
+/* ------------------SEGUNDO SQL EJECUTADO EN PRODUCCION------------ */
+
+ALTER TABLE users
+ADD COLUMN apPaterno VARCHAR(150) NOT NULL
