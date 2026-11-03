@@ -18,3 +18,7 @@ CREATE TABLE posts(
 
 ALTER TABLE users
 ADD COLUMN apPaterno VARCHAR(150) NOT NULL
+
+
+INSERT INTO users(name,email) VALUES($1,$2) RETURNING *
+

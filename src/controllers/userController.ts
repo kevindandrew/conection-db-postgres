@@ -1,27 +1,59 @@
 import type { Response, Request } from "express";
-import { query } from "../config/db.js";
+import { UserModel } from "../models/userModel.js";
 
 export async function getUsers(req: Request, res: Response) {
   try {
-    const { rows } = await query("SELECT * FROM users ORDER BY id ASC");
-    res.json(rows);
-  } catch (error) {
+    const users = await UserModel.findAll();
+    res.status(200).json(users);
+  } catch (error: any) {
     console.error(error);
     res.status(500).json({
-      error: "Error al obetener los usuarios",
+      error: "error al obtener todos los usuarios",
+      detalles: error.mesagge,
+    });
+  }
+}
+
+export async function getUserById(req: Request, res: Response) {
+  const idBuscado = Number(req.params.id);
+  if (!idBuscado) {
+    return res.status(400).json({
+      mensaje: "el id es obligatorio para este endpoint",
+    });
+  }
+  try {
+    const usuario = await UserModel.findById(idBuscado);
+    if (!usuario) {
+      return res.status(404).json({
+        mensaje: "el usuario con ese id no existe o no fue encontrado",
+      });
+    }
+    res.status(200).json({ ok: true, data: usuario });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      error: "error al obtener todos los usuarios",
+      detalles: error.mesagge,
     });
   }
 }
 
 export async function createUser(req: Request, res: Response) {
   const { name, email } = req.body;
+  if (!name || !email) {
+    return res.status(400).json({ error: "faltan datos obligatorios" });
+  }
   try {
-    const text = `INSERT INTO users(name, email) VALUES ($1,$2) RETURNING *`;
-    const values = [name, email];
-    const { rows } = await query(text, values);
+    const userExist = await UserModel.findByEmail(email);
+    if (userExist) {
+      return res
+        .status(404)
+        .json({ error: "ya existe un usuario con ese correo" });
+    }
+    const newUser = await UserModel.create(name, email);
     res.status(201).json({
-      mensaje: "usuario creado con exito",
-      data: rows[0],
+      ok: true,
+      data: newUser,
     });
   } catch (error: any) {
     console.error(error);
