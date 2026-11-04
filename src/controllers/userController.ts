@@ -40,14 +40,11 @@ export async function getUserById(req: Request, res: Response) {
 
 export async function createUser(req: Request, res: Response) {
   const { name, email } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ error: "faltan datos obligatorios" });
-  }
   try {
     const userExist = await UserModel.findByEmail(email);
     if (userExist) {
       return res
-        .status(404)
+        .status(400)
         .json({ error: "ya existe un usuario con ese correo" });
     }
     const newUser = await UserModel.create(name, email);
@@ -59,6 +56,62 @@ export async function createUser(req: Request, res: Response) {
     console.error(error);
     res.status(500).json({
       error: "error al crear el usuario",
+      detalles: error.mesagge,
+    });
+  }
+}
+
+export async function updateUser(req: Request, res: Response) {
+  const { name, email } = req.body;
+  const idBuscado = Number(req.params.id);
+  if (!idBuscado) {
+    return res.status(400).json({
+      mensaje: "el id es obligatorio para este endpoint",
+    });
+  }
+  try {
+    const userFind = await UserModel.findById(idBuscado);
+    if (!userFind) {
+      return res.status(404).json({
+        mesagge: "el usuario con ese id no existe",
+      });
+    }
+    const userUpdate = await UserModel.update(idBuscado, name, email);
+    res.status(200).json({
+      ok: true,
+      data: userUpdate,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      error: "error al actualizar el usuario",
+      detalles: error.mesagge,
+    });
+  }
+}
+
+export async function deleteUser(req: Request, res: Response) {
+  const idBuscado = Number(req.params.id);
+  if (!idBuscado) {
+    return res.status(400).json({
+      mensaje: "el id es obligatorio para este endpoint",
+    });
+  }
+  try {
+    const userFind = await UserModel.findById(idBuscado);
+    if (!userFind) {
+      return res.status(404).json({
+        mesagge: "el usuario con ese id no existe",
+      });
+    }
+    const userDelete = await UserModel.delete(idBuscado);
+    res
+      .status(200)
+      .json({ mesagge: "USUARIO eliminado con exito", user: userDelete });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      error: "error al eliminar el usuario",
       detalles: error.mesagge,
     });
   }

@@ -19,4 +19,20 @@ export const UserModel = {
     const { rows } = await query("SELECT * FROM users WHERE email=$1", [email]);
     return rows[0];
   },
+  async update(id: number, name?: string, email?: string) {
+    const text = `
+    UPDATE users
+    SET name = COALESCE ($1,name),
+        email = COALESCE ($2,email)
+    WHERE id = $3
+    RETURNING *
+    `;
+    const { rows } = await query(text, [name || null, email || null, id]);
+    return rows[0];
+  },
+  async delete(id: number) {
+    const text = "DELETE FROM users WHERE id = $1 RETURNING *";
+    const { rows } = await query(text, [id]);
+    return rows[0];
+  },
 };
