@@ -32,5 +32,4 @@ app.listen(PORT, function () {
   paso 5 agregarlo al router
   paso 6 agregarlo al index
   paso 7 probarlo
-
 */

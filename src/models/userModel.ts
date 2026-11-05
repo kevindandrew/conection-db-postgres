@@ -2,8 +2,34 @@ import { query } from "../config/db.js";
 
 //modelo para la tabla de "users"
 export const UserModel = {
-  async findAll() {
-    const { rows } = await query("SELECT * FROM users ORDER BY id ASC");
+  async findAll(filters: {
+    name?: string | undefined;
+    email?: string | undefined;
+    limit?: number | undefined;
+  }) {
+    let sqlBase = "SELECT * FROM users WHERE 1=1";
+    const values = [];
+    let paramIndex = 1;
+
+    if (filters.name) {
+      sqlBase += ` AND name LIKE $${paramIndex}`;
+      values.push(`%${filters.name}%`);
+      paramIndex++;
+    }
+    if (filters.email) {
+      sqlBase += ` AND email LIKE $${paramIndex}`;
+      values.push(`%${filters.email}%`);
+      paramIndex++;
+    }
+    sqlBase += " ORDER BY id ASC";
+
+    if (filters.limit) {
+      sqlBase += ` LIMIT $${paramIndex}`;
+      values.push(filters.limit);
+      paramIndex++;
+    }
+
+    const { rows } = await query(sqlBase, values);
     return rows;
   },
   async findById(id: number) {
