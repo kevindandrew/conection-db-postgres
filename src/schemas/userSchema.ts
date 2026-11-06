@@ -12,11 +12,16 @@ export const createUserSchema = z.object({
 export const getUsersQuerySchema = z.object({
   name: z.string().optional(),
   email: z.string().optional(),
+  page: z
+    .string()
+    .regex(/^\d+$/, "la page debe ser un numero")
+    .transform(Number)
+    .default(1),
   limit: z
     .string()
     .regex(/^\d+$/, "el limite debe ser un numero")
     .transform(Number)
-    .optional(),
+    .default(10),
 });
 
 export type GetUserQueryInput = z.infer<typeof getUsersQuerySchema>;

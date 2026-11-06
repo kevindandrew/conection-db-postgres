@@ -14,7 +14,7 @@ import {
 } from "../schemas/userSchema.js";
 const router = Router();
 
-router.get("/users", validateSchema(getUsersQuerySchema, "query"), getUsers);
+router.get("/users", getUsers);
 router.get("/users/:id", getUserById);
 router.post("/users", validateSchema(createUserSchema, "body"), createUser);
 router.put("/users/:id", validateSchema(updateUserSchema, "body"), updateUser);

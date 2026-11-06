@@ -1,14 +1,22 @@
 import type { Response, Request } from "express";
 import { UserModel } from "../models/userModel.js";
 import type { GetUserQueryInput } from "../schemas/userSchema.js";
-
+import { getUsersQuerySchema } from "../schemas/userSchema.js";
 export async function getUsers(
   req: Request<{}, {}, {}, GetUserQueryInput>,
   res: Response,
 ) {
   try {
-    const { name, email, limit } = req.query;
-    const users = await UserModel.findAll({ name, email, limit });
+    const result = getUsersQuerySchema.safeParse(req.query);
+
+    if (!result.success) {
+      return res.status(400).json({
+        error: "Parámetros de consulta inválidos",
+        detalles: result.error.format(),
+      });
+    }
+    const { name, email, limit, page } = result.data;
+    const users = await UserModel.findAll({ name, email, limit, page });
     res.status(200).json(users);
   } catch (error: any) {
     console.error(error);

@@ -5,32 +5,43 @@ export const UserModel = {
   async findAll(filters: {
     name?: string | undefined;
     email?: string | undefined;
-    limit?: number | undefined;
+    page: number;
+    limit: number;
   }) {
-    let sqlBase = "SELECT * FROM users WHERE 1=1";
-    const values = [];
+    const { name, email, page, limit } = filters;
+
+    let sqlBase = "WHERE 1=1";
+    const values: any[] = [];
     let paramIndex = 1;
 
-    if (filters.name) {
+    if (name) {
       sqlBase += ` AND name LIKE $${paramIndex}`;
-      values.push(`%${filters.name}%`);
+      values.push(`%${name}%`);
       paramIndex++;
     }
-    if (filters.email) {
+    if (email) {
       sqlBase += ` AND email LIKE $${paramIndex}`;
-      values.push(`%${filters.email}%`);
-      paramIndex++;
-    }
-    sqlBase += " ORDER BY id ASC";
-
-    if (filters.limit) {
-      sqlBase += ` LIMIT $${paramIndex}`;
-      values.push(filters.limit);
+      values.push(`%${email}%`);
       paramIndex++;
     }
 
-    const { rows } = await query(sqlBase, values);
-    return rows;
+    const countQuery = `SELECT COUNT(*) FROM users ${sqlBase}`;
+    const countResult = await query(countQuery, values);
+    const totalItem = parseInt(countResult.rows[0].count, 10);
+
+    const offset = (page - 1) * limit;
+    let dataQuery = `SELECT * FROM users ${sqlBase} ORDER BY id ASC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    const queryValues = [...values, limit, offset];
+    const { rows } = await query(dataQuery, queryValues);
+    return {
+      data: rows,
+      pagination: {
+        totalItem,
+        itemsPerPage: limit,
+        currentPage: page,
+        totalPages: Math.ceil(totalItem / limit),
+      },
+    };
   },
   async findById(id: number) {
     const { rows } = await query("SELECT * FROM users WHERE id=$1", [id]);
